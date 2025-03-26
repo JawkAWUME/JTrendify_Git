@@ -1,25 +1,27 @@
 <?php
+
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('api')->group(function () {
-    // Inscription
-    Route::post('register', [AuthController::class, 'register']);
+// Authenticated routes
+// Route::middleware([EnsureFrontendRequestsAreStateful::class, 'auth:sanctum'])->get('/user', function (Request $request) {
+//     return $request->user();
+// });
 
-    // Connexion
-    Route::post('login', [AuthController::class, 'login']);
+Route::middleware('auth:sanctum')->group(function () {
+    // Déconnexion
+    Route::post('logout', [AuthController::class, 'logout']);
 
-    // Déconnexion (protected by auth:api middleware)
-    Route::middleware('auth:api')->post('logout', [AuthController::class, 'logout']);
-
-    // Réinitialisation du mot de passe
-    Route::post('reset-password', [AuthController::class, 'resetPassword']);
-
-    // Mise à jour du profil (protected by auth:api middleware)
-    Route::middleware('auth:api')->put('update-profile', [AuthController::class, 'updateProfile']);
+    // Mise à jour du profil
+    Route::put('update-profile', [AuthController::class, 'updateProfile']);
 
     // Protection des routes par rôle (exemple: seulement pour l'admin)
-    Route::middleware(['auth:api', 'role:admin'])->get('admin-dashboard', function () {
+    Route::middleware('role:admin')->get('admin-dashboard', function () {
         return response()->json(['message' => 'Welcome Admin']);
     });
 });
+
+// Routes publiques
+Route::post('register', [AuthController::class, 'register']);
+Route::post('login', [AuthController::class, 'login'])->name('login'); // Named login route
+Route::post('reset-password', [AuthController::class, 'resetPassword']);

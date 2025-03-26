@@ -1,13 +1,11 @@
 <?php
-
 namespace App\Http\Controllers;
-use App\Http\Controllers\Controller;
+
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
@@ -32,7 +30,8 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $token = JWTAuth::fromUser($user);
+        // Create a Sanctum token after registration
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json(['user' => $user, 'token' => $token], 201);
     }
@@ -41,30 +40,41 @@ class AuthController extends Controller
      * Connexion de l'utilisateur.
      */
     public function login(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
+{
+    // Validate the incoming request
+    $validator = Validator::make($request->all(), [
+        'email' => 'required|email',
+        'password' => 'required|string',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
-        }
-
-        if (!$token = JWTAuth::attempt($request->only('email', 'password'))) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
-
-        return response()->json(['user'=>$request['email'],
-                                'token' => $token]);
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 400);
     }
+
+    // Find the user by email
+    $user = User::where('email', $request->email)->first();
+
+    // Check if the user exists and if the password matches
+    if (!$user || !Hash::check($request->password, $user->password)) {
+        return response()->json(['error' => 'Unauthorized'], 401);
+    }
+
+    // Create a Sanctum token upon successful login
+    $token = $user->createToken('auth_token')->plainTextToken;
+
+    return response()->json([
+        'user' => $user,
+        'token' => $token
+    ]);
+}
+
 
     /**
      * Déconnexion de l'utilisateur.
      */
-    public function logout()
+    public function logout(Request $request)
     {
-        Auth::logout();
+        $request->user()->tokens()->delete();
         return response()->json(['message' => 'Successfully logged out']);
     }
 
