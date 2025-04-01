@@ -16,9 +16,23 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('update-profile', [AuthController::class, 'updateProfile']);
 
     // Protection des routes par rôle (exemple: seulement pour l'admin)
-    Route::middleware('role:admin')->get('admin-dashboard', function () {
-        return response()->json(['message' => 'Welcome Admin']);
-    });
+    Route::middleware('role:admin')->group(function () {
+        Route::post('/products', [ProductController::class, 'store']);
+        Route::patch('/products/{id}/assign-category', [ProductController::class, 'assignCategory']);
+        Route::put('/products/{id}', [ProductController::class, 'update']);
+        Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+
+    }); 
+
+    Route::get('/products', [ProductController::class, 'index']);
+    // Route::post('/products', [ProductController::class, 'store'])->middleware('admin');
+    Route::get('/products/{id}', [ProductController::class, 'show']);
+    // Route::patch('/products/{id}/assign-category', [ProductController::class, 'assignCategory'])->middleware('admin');
+    Route::post('/products/{id}/reviews', [ReviewController::class, 'store']);
+    Route::post('/products/{id}/favorite', [FavoriteController::class, 'toggleFavorite']);
+    // Route::put('/products/{id}', [ProductController::class, 'update'])->middleware('admin');
+    // Route::delete('/products/{id}', [ProductController::class, 'destroy'])->middleware('admin');
+    
 });
 
 // Routes publiques
