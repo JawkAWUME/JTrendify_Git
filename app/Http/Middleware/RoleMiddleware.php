@@ -17,10 +17,8 @@ class RoleMiddleware
      */
     public function handle($request, Closure $next, $role)
     {
-        $user = Auth::user();
-
-        if (!$user || !$user->hasRole($role)) {
-            return response()->json(['error' => 'You do not have the required permissions'], 403);
+        if (!Auth::check() || !Auth::user()->hasRole($role)) {
+            abort(403, 'Unauthorized action.');
         }
 
         return $next($request);

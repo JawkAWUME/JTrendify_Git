@@ -11,17 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('payments', function (Blueprint $table) {
-            $table->id(); // Clé primaire
-            $table->unsignedBigInteger('user_id'); // Colonne pour la clé étrangère
-            $table->unsignedBigInteger('order_id'); // Colonne pour la clé étrangère
-            $table->decimal('amount', 8, 2); // Montant payé
-            $table->string('status'); // Statut du paiement
+        Schema::table('payments', function (Blueprint $table) {
+            // Ajouter des colonnes ou modifier la structure de la table
             $table->timestamps(); // Les champs created_at et updated_at
-
-            // Définir les contraintes de clé étrangère
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('order_id')->references('id')->on('orders')->onDelete('cascade');
         });
     }
 
@@ -30,6 +22,13 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('payments');
+        Schema::table('payments', function (Blueprint $table) {
+            // Revert changes made in the 'up' method
+            $table->dropForeign(['user_id']);
+            $table->dropForeign(['order_id']);
+            
+            // Supprimer les colonnes ajoutées ou les modifications de structure
+            // $table->dropColumn('new_column');
+        });
     }
 };

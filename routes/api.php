@@ -1,41 +1,45 @@
 <?php
-
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\FavoriteController;
 use Illuminate\Support\Facades\Route;
 
-// Authenticated routes
-// Route::middleware([EnsureFrontendRequestsAreStateful::class, 'auth:sanctum'])->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-
+// Routes protégées avec Sanctum
 Route::middleware('auth:sanctum')->group(function () {
-    // Déconnexion
     Route::post('logout', [AuthController::class, 'logout']);
-
-    // Mise à jour du profil
     Route::put('update-profile', [AuthController::class, 'updateProfile']);
 
-    // Protection des routes par rôle (exemple: seulement pour l'admin)
-    Route::middleware('role:admin')->group(function () {
-        Route::post('/products', [ProductController::class, 'store']);
-        Route::patch('/products/{id}/assign-category', [ProductController::class, 'assignCategory']);
-        Route::put('/products/{id}', [ProductController::class, 'update']);
-        Route::delete('/products/{id}', [ProductController::class, 'destroy']);
-
-    }); 
-
+    // Routes accessibles aux utilisateurs authentifiés
     Route::get('/products', [ProductController::class, 'index']);
-    // Route::post('/products', [ProductController::class, 'store'])->middleware('admin');
     Route::get('/products/{id}', [ProductController::class, 'show']);
-    // Route::patch('/products/{id}/assign-category', [ProductController::class, 'assignCategory'])->middleware('admin');
     Route::post('/products/{id}/reviews', [ReviewController::class, 'store']);
     Route::post('/products/{id}/favorite', [FavoriteController::class, 'toggleFavorite']);
-    // Route::put('/products/{id}', [ProductController::class, 'update'])->middleware('admin');
-    // Route::delete('/products/{id}', [ProductController::class, 'destroy'])->middleware('admin');
-    
+
+    Route::prefix('categories')->group(function () {
+        Route::get('/', [CategoryController::class, 'index']);
+        Route::get('/{category}', [CategoryController::class, 'show']);
+        Route::get('/{category}/products', [CategoryController::class, 'getProducts']);
+        Route::get('/filter', [CategoryController::class, 'filter']);
+    });
+
+    // Routes nécessitant une autorisation spécifique (via Gates)
+    Route::post('/products', [ProductController::class, 'store']);
+    Route::patch('/products/{id}/assign-category', [ProductController::class, 'assignCategory']);
+    Route::put('/products/{id}', [ProductController::class, 'update']);
+    Route::delete('/products/{id}', [ProductController::class, 'destroy']);
+
+    Route::prefix('categories')->group(function () {
+        Route::post('/', [CategoryController::class, 'store']);
+        Route::put('/{category}', [CategoryController::class, 'update']);
+        Route::delete('/{category}', [CategoryController::class, 'destroy']);
+        Route::post('/{category}/subcategories', [CategoryController::class, 'addSubcategory']);
+        Route::delete('/{category}/subcategories/{subcategory}', [CategoryController::class, 'removeSubcategory']);
+    });
 });
 
 // Routes publiques
 Route::post('register', [AuthController::class, 'register']);
-Route::post('login', [AuthController::class, 'login'])->name('login'); // Named login route
+Route::post('login', [AuthController::class, 'login'])->name('login');
 Route::post('reset-password', [AuthController::class, 'resetPassword']);

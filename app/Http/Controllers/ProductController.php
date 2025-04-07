@@ -77,7 +77,7 @@ class ProductController extends Controller
 
     public function assignCategory(Request $request, Product $product)
     {
-        $this->authorize('update', $product);
+        $this->authorize('assignCategory', $product);
 
         $data = $request->validate([
             'category_id' => 'required|exists:categories,id',

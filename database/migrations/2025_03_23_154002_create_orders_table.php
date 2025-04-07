@@ -12,8 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('orders', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->id(); // Clé primaire
+            $table->unsignedBigInteger('user_id'); // Colonne pour la clé étrangère
+            $table->decimal('total_price', 8, 2); // Total du prix
+            $table->string('status'); // Statut de la commande
+            $table->timestamps(); // Les champs created_at et updated_at
+
+            // Définir la contrainte de clé étrangère
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

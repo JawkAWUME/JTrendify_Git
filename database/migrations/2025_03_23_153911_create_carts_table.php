@@ -12,10 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('carts', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->id(); // Clé primaire
+            $table->unsignedBigInteger('user_id'); // Colonne pour la clé étrangère
+            $table->unsignedBigInteger('product_id'); // Colonne pour la clé étrangère
+            $table->integer('quantity'); // Quantité du produit dans le panier
+            $table->timestamps(); // Les champs created_at et updated_at
+
+            // Définir les contraintes de clé étrangère
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
         });
     }
+
 
     /**
      * Reverse the migrations.
